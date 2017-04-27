@@ -21,6 +21,7 @@ import br.com.alura.loja.modelo.Produto;
 public class ClienteTest {
 	
 	private HttpServer server;
+	private Client client;
 
 	@Before
 	public void iniciaServidor() {
@@ -34,10 +35,9 @@ public class ClienteTest {
 
 	@Test
 	public void TestaConexao() {
-		Client client = ClientBuilder.newClient();
+		client = ClientBuilder.newClient();
 		WebTarget target = client.target("http://localhost:8080/");
 		String conteudo = target.path("/carrinhos/1").request().get(String.class);
-//		System.out.println(conteudo);
 		Carrinho carrinho = ((Carrinho)new XStream().fromXML(conteudo));
 		
 		Assert.assertEquals("Rua Vergueiro 3185, 8 andar", carrinho.getRua());
@@ -56,6 +56,9 @@ public class ClienteTest {
 		Entity<String> entity = Entity.entity(xml, MediaType.APPLICATION_XML);
 		
 		Response response = target.path("/carrinhos").request().post(entity);
-		Assert.assertEquals("<status>sucesso</status>", response.readEntity(String.class));
+		Assert.assertEquals(201, response.getStatus());
+		String location = response.getHeaderString("location");
+		String conteudo = client.target(location).request().get(String.class);
+		Assert.assertTrue(conteudo.contains("Tablet"));
 	}
 }
