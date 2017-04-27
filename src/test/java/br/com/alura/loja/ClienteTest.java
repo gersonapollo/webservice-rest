@@ -61,4 +61,17 @@ public class ClienteTest {
 		String conteudo = client.target(location).request().get(String.class);
 		Assert.assertTrue(conteudo.contains("Tablet"));
 	}
+	
+	@Test
+	public void testaRemocaoProduto() {
+		client = ClientBuilder.newClient();
+		WebTarget target = client.target("http://localhost:8080/");
+		Response response = target.path("/carrinhos/1/produtos/6237").request().delete();
+		
+		Assert.assertEquals(200, response.getStatus());
+		String conteudo = target.path("/carrinhos/1").request().get(String.class);
+		
+		Assert.assertFalse(conteudo.contains("6237"));
+		
+	}
 }
