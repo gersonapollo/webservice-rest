@@ -1,5 +1,7 @@
 package br.com.alura.loja;
 
+import java.util.List;
+
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -8,6 +10,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.filter.LoggingFilter;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -22,21 +26,24 @@ public class ClienteTest {
 	
 	private HttpServer server;
 	private Client client;
+	private WebTarget target;
 
 	@Before
 	public void iniciaServidor() {
-		server = Servidor.inicializarServidor();
+		this.server = Servidor.inicializarServidor();
+		ClientConfig config = new ClientConfig();
+		config.register(new LoggingFilter());
+		this.client = ClientBuilder.newClient(config);
+		this.target = client.target("http://localhost:8080/");
 	}
 	
 	@After
 	public void pararServidor() {
-		server.stop();
+		this.server.stop();
 	}
 
 	@Test
-	public void TestaConexao() {
-		client = ClientBuilder.newClient();
-		WebTarget target = client.target("http://localhost:8080/");
+	public void testaConexao() {
 		String conteudo = target.path("/carrinhos/1").request().get(String.class);
 		Carrinho carrinho = ((Carrinho)new XStream().fromXML(conteudo));
 		
@@ -44,9 +51,7 @@ public class ClienteTest {
 	}
 	
 	@Test
-	public void TestaInclusao() {
-		Client client = ClientBuilder.newClient();
-		WebTarget target = client.target("http://localhost:8080/");
+	public void testaInclusao() {
 		Carrinho carrinho = new Carrinho();
 		carrinho.adiciona(new Produto(32L, "Tablet", 250, 10));
 		carrinho.setRua("Rua Riachuelo, 83");
@@ -64,8 +69,6 @@ public class ClienteTest {
 	
 	@Test
 	public void testaRemocaoProduto() {
-		client = ClientBuilder.newClient();
-		WebTarget target = client.target("http://localhost:8080/");
 		Response response = target.path("/carrinhos/1/produtos/6237").request().delete();
 		
 		Assert.assertEquals(200, response.getStatus());
@@ -74,4 +77,26 @@ public class ClienteTest {
 		Assert.assertFalse(conteudo.contains("6237"));
 		
 	}
+	
+	@Test
+	public void testaAlteracaoProduto() {
+		Produto produto = new Produto(3467, "Jogo de esporte", 60, 10);
+		String xml = new XStream().toXML(produto);
+		Entity<String> entity = Entity.entity(xml, MediaType.APPLICATION_XML);
+		Response response = target.path("/carrinhos/1/produtos/3467").request().put(entity);
+		Assert.assertEquals(200, response.getStatus());
+		
+		String conteudo = target.path("/carrinhos/1").request().get(String.class);
+		Carrinho carrinho = (Carrinho)new XStream().fromXML(conteudo);
+		List<Produto> produtos = carrinho.getProdutos();
+		for (Produto produto2 : produtos) {
+			if(produto.getId() == 3467) {
+				Assert.assertEquals(10, produto2.getQuantidade());
+				
+			}
+		}
+		
+	}
+	
+	
 }

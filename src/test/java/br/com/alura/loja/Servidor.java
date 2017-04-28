@@ -11,11 +11,9 @@ public class Servidor {
 	
 	public static void main(String[] args) throws IOException {
 		HttpServer server = inicializarServidor();
-		
 		System.out.println("Servidor Rodando");
 		System.in.read();
 		server.stop();
-		System.out.println("Servidor Parado");
 	}
 
 	public static HttpServer inicializarServidor() {
