@@ -26,16 +26,15 @@ public class CarrinhoResource {
 	@Path("{id}")
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-	public String busca(@PathParam("id") long id) {
+	public Carrinho busca(@PathParam("id") long id) {
 		Carrinho carrinho = new CarrinhoDAO().busca(id);
-		return carrinho.toXml();
+		return carrinho;
 	}
 	
 	@POST
 	@Consumes(MediaType.APPLICATION_XML)
-	public Response adiciona(String conteudo) throws URISyntaxException {
+	public Response adiciona(Carrinho carrinho) throws URISyntaxException {
 		System.out.println("executando post");
-		Carrinho carrinho = (Carrinho) new XStream().fromXML(conteudo);
 		new CarrinhoDAO().adiciona(carrinho);
 		
 		URI uri = new URI("/carrinhos/"+ carrinho.getId());
