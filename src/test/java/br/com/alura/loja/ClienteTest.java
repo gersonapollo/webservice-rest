@@ -56,7 +56,6 @@ public class ClienteTest {
 		carrinho.setCidade("Barueri");
 		
 		Entity<Carrinho> entity = Entity.entity(carrinho, MediaType.APPLICATION_XML);
-		
 		Response response = target.path("/carrinhos").request().post(entity);
 		Assert.assertEquals(201, response.getStatus());
 		String location = response.getHeaderString("location");
